@@ -1,0 +1,21 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    celluloid (0.15.1)
+      timers (~> 1.1.0)
+    celluloid-zmq (0.15.0)
+      celluloid (>= 0.13.0)
+      ffi
+      ffi-rzmq
+    ffi (1.9.0)
+    ffi-rzmq (1.0.1)
+      ffi
+    oj (2.1.4)
+    timers (1.1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  celluloid-zmq
+  oj
