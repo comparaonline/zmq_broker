@@ -11,12 +11,13 @@ module ZmqBroker
     def initialize(pull_addr: 'tcp://0.0.0.0:5555', pub_addr: 'tcp://0.0.0.0:5556')
       ZmqBroker::Logger.info 'starting ZeroMQ Broker'
 
-      @pull_socket = PullSocket.new
+      @sub_socket = SubSocket.new
       @pub_socket = PubSocket.new
 
       begin
-        @pull_socket.bind pull_addr
-        Logger.info "bound zmq pull socket on #{pull_addr}"
+        @sub_socket.bind pull_addr
+        @sub_socket.subscribe '' # subscribe to all messages
+        Logger.info "bound zmq subscribe socket on #{pull_addr}"
 
         @pub_socket.bind pub_addr
         Logger.info "bound zmq publish socket on #{pub_addr}"
@@ -30,16 +31,18 @@ module ZmqBroker
     end
 
     def close_sockets
-      @pull_socket.close
+      @sub_socket.close
       @pub_socket.close
     end
 
     def run
-      loop { async.handle_message @pull_socket.read }
+      loop do
+        async.handle_message @sub_socket.read
+      end
     end
 
     def handle_message(message)
-      Logger.info "pulled new message"
+      Logger.info "received new message"
       params = ::JSON.parse message
 
       body = params['body']
