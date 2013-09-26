@@ -9,5 +9,4 @@ trap :INT do
   exit
 end
 
-ZmqBroker::Logger.info 'starting ZeroMQ Broker'
 ZmqBroker::SupervisionGroup.run

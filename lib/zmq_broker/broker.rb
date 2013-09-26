@@ -8,8 +8,9 @@ module ZmqBroker
 
     finalizer :close_sockets
 
-    def initialize(name: 'broker', pull_addr: 'tcp://0.0.0.0:5555', pub_addr: 'tcp://0.0.0.0:5556')
-      @name = name
+    def initialize(pull_addr: 'tcp://0.0.0.0:5555', pub_addr: 'tcp://0.0.0.0:5556')
+      ZmqBroker::Logger.info 'starting ZeroMQ Broker'
+
       @pull_socket = PullSocket.new
       @pub_socket = PubSocket.new
 
@@ -38,16 +39,18 @@ module ZmqBroker
     end
 
     def handle_message(message)
-      Logger.info "#{@name}: pulled message #{message}"
+      Logger.info "pulled new message"
       params = ::JSON.parse message
 
       body = params['body']
       channel = params['channel']
 
-      Logger.info "#{@name}: publishing message #{body} on channel \##{channel}"
-      @pub_socket.write channel, body
+      Logger.info "publishing message #{body} on channel \##{channel}"
+      @pub_socket.write channel, ::JSON.generate(body)
     rescue ::JSON::ParserError
-      Logger.error "#{@name}: couldn't parse message: #{message}"
+      Logger.error "couldn't parse message: #{message}"
+    rescue ::JSON::GeneratorError
+      Logger.error "couldn't encode message as json: #{body}"
     end
   end
 end
