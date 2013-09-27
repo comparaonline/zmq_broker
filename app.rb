@@ -1,3 +1,7 @@
+
+require 'rubygems'
+require 'bundler/setup'
+
 $:<< './lib'
 
 require 'celluloid/zmq'
