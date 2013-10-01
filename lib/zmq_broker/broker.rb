@@ -8,19 +8,23 @@ module ZmqBroker
 
     finalizer :close_sockets
 
-    def initialize(pull_addr: 'tcp://0.0.0.0:5555', pub_addr: 'tcp://0.0.0.0:5556')
+    def initialize(options = {})
+      options = {
+        pull_addr: 'tcp://0.0.0.0:5555',
+        pub_addr: 'tcp://0.0.0.0:5556'
+        }.merge options
       ZmqBroker::Logger.info 'starting ZeroMQ Broker'
 
       @sub_socket = SubSocket.new
       @pub_socket = PubSocket.new
 
       begin
-        @sub_socket.bind pull_addr
+        @sub_socket.bind options[:pull_addr]
         @sub_socket.subscribe '' # subscribe to all messages
-        Logger.info "bound zmq subscribe socket on #{pull_addr}"
+        Logger.info "bound zmq subscribe socket on #{options[:pull_addr]}"
 
-        @pub_socket.bind pub_addr
-        Logger.info "bound zmq publish socket on #{pub_addr}"
+        @pub_socket.bind options[:pub_addr]
+        Logger.info "bound zmq publish socket on #{options[:pub_addr]}"
 
         async.run
       rescue IOError
