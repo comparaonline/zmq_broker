@@ -5,6 +5,7 @@ require 'json'
 module ZmqBroker
   class Broker
     include Celluloid::ZMQ
+    PING_INTERVAL = 60 # in seconds
 
     finalizer :close_sockets
 
@@ -13,6 +14,7 @@ module ZmqBroker
         pull_addr: 'tcp://0.0.0.0:5555',
         pub_addr: 'tcp://0.0.0.0:5556'
         }.merge options
+
       ZmqBroker::Logger.info 'starting ZeroMQ Broker'
 
       @sub_socket = SubSocket.new
@@ -27,6 +29,7 @@ module ZmqBroker
         Logger.info "bound zmq publish socket on #{options[:pub_addr]}"
 
         async.run
+        @timer = every(PING_INTERVAL) { send_ping }
       rescue IOError
         Logger.error "could not bind sockets"
         close_sockets
@@ -58,6 +61,11 @@ module ZmqBroker
       Logger.error "couldn't parse message: #{message}"
     rescue ::JSON::GeneratorError
       Logger.error "couldn't encode message as json: #{body}"
+    end
+
+    def send_ping
+      Logger.info "sending ping message"
+      @pub_socket.write 'ping', '{"action": "ping"}'
     end
   end
 end
